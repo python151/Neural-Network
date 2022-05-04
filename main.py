@@ -2,24 +2,26 @@ from Network import Network
 
 import numpy as np
 import pickle
+from alive_progress import alive_it
 
 # Loading in Dataset
-'''
+
 # FAKE DATA HERE
-data =  [([i], [i+1]) for i in range(100)]/np.linalg.norm([([i], [i+1]) for i in range(100)])
+data =  [([i, i+1], [i+1, i+2]) for i in range(100)]/np.linalg.norm([([i, i+1], [i+1, i+2]) for i in range(100)])
 training_data = data 
+
 '''
 # FAKE DATA HERE #2
-data =  [([i], [i**2]) for i in range(100)]/np.linalg.norm([([i], [i**2]) for i in range(100)])
+data =  [([i, i+1], [i**2, i**3]) for i in range(100)]/np.linalg.norm([([i, i+1], [i**2, i**3]) for i in range(100)])
 training_data = data 
-
+'''
 
 # Configuring training
-generation_size, num_generations, filter_size = 50, 10, 10
+first_generation_size, generation_size, num_generations, filter_size = 1000, 100, 100, 10
 
 # Actually training
-generation = [Network().recursive_permutation(50) for i in range(generation_size)]
-for gen in range(num_generations):
+generation = [Network().recursive_permutation(50) for i in range(first_generation_size)]
+for gen in alive_it(range(num_generations)):
     # Evaluation and filter of current network
     generation = sorted(generation, key=lambda member: member.compare_to_dataset(training_data))[0:filter_size:]
 
@@ -30,8 +32,13 @@ for gen in range(num_generations):
             new_generation.append( member.generate_permuation() )
     generation = new_generation
 
-    print(f"the best of gen {gen} is {generation[0].compare_to_dataset(data)}")
+    if gen % 5 == 0:
+        # Saving network
+        filehandler = open("top_network.obj", 'wb') 
+        pickle.dump(generation[0], filehandler)
+        
+        print(f"Accuracy: {generation[0].compare_to_dataset(data)}")
 
 # Saving network
 filehandler = open("top_network.obj", 'wb') 
-pickle.dump(generation[0].network, filehandler)
+pickle.dump(generation[0], filehandler)
