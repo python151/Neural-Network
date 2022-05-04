@@ -25,7 +25,7 @@ class Network:
                 self.network.nodes[i].update(value=.5)
     
     @copy_network
-    def _run_network(self, inputs, network=None):
+    def _run_network(self, inputs: list, network=None) -> list:
         for i, node in enumerate(self.input_layer):
             network.nodes[node].update(value=inputs[i])
         
@@ -35,17 +35,17 @@ class Network:
 
         return [network.nodes[node]["value"] for node in self.output_layer]
     
-    def compare_to_dataset(self, data):
+    def compare_to_dataset(self, data: list) -> float:
         return np.sum([np.sum( [np.abs(n - d[1][i]) for i, n in enumerate(self._run_network(d[0]))] ) for d in data])
     
     @copy_network
-    def generate_permuation(self, network=None):
+    def generate_permuation(self, network=None) -> object:
         for node in np.random.random_integers(0, high=self.max_node, size=5):
             next_row = np.floor(node / self.layer_size)+1
             network.add_edge(node, next_row*self.layer_size+np.random.randint(0, high=self.layer_size), weight=np.random.uniform(0, 1))
         return Network(duplicates=self, network=network)
     
-    def recursive_permutation(self, num):
+    def recursive_permutation(self, num: int) -> object:
         if num == 0:
             return self.generate_permuation()
         return self.generate_permuation().recursive_permutation(num-1)

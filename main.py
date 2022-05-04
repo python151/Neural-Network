@@ -9,7 +9,6 @@ import pickle
 data =  [([i], [i+1]) for i in range(100)]/np.linalg.norm([([i], [i+1]) for i in range(100)])
 training_data = data 
 '''
-
 # FAKE DATA HERE #2
 data =  [([i], [i**2]) for i in range(100)]/np.linalg.norm([([i], [i**2]) for i in range(100)])
 training_data = data 
