@@ -18,6 +18,7 @@ training_data = data
 # Configuring training
 generation_size, num_generations, filter_size = 50, 10, 10
 
+# Actually training
 generation = [Network().recursive_permutation(50) for i in range(generation_size)]
 for gen in range(num_generations):
     # Evaluation and filter of current network
