@@ -11,3 +11,10 @@ The program has some options for configury, but for the most part they are coded
   <li>You can change the <code>generation_size</code>, <code>num_generations</code>, <code>filter_size</code> (Parameters of the genetic algorithm) in the section labeled 'Configuring training' of <code>main.py</code>.</li>
   <li>You can change up the data itself in the area of <code>main.py</code> labeled 'Loading in Dataset' (will likely automate process soon).</li>
 </ul>
+
+<b>Scripts + Analytics:</b>
+<ul>
+  <li>The <code>main.py</code> script will train and store the model to a file.</li>
+  <li>The <code>Draw_network.py</code> script will write a visual graph-based representation of the model into a .png file.</li>
+  <li>The <code>Display_metrics</code> script will display the time complexity, and plot some graphs to show the models performance.</li>
+</ul>
