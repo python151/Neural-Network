@@ -7,9 +7,7 @@ class Network:
     network = None
     layer_size, max_node = None, None
 
-    bias = -.5
-
-    def __init__(self, num_hidden_layers=3, layer_size=5, input_shape=2, output_shape=2, duplicates=None, network=None):
+    def __init__(self, num_hidden_layers=2, layer_size=4, input_shape=2, output_shape=2, duplicates=None, network=None):
         self.network = network if network is not None else None
         if duplicates is not None:
             # Copying data from duplicate argument
@@ -20,13 +18,17 @@ class Network:
             # Defining some defaults
             self.network = nx.DiGraph()
             self.hidden_layers = [ [input_shape + (k*layer_size) + j for j in range(layer_size)] for k in range(num_hidden_layers) ]
-            self.input_layer, self.output_layer = [i for i in range(input_shape)], [input_shape+(num_hidden_layers * layer_size)+i for i in range(output_shape)]
+            self.input_layer, self.output_layer = [i for i in range(input_shape)], [input_shape+(num_hidden_layers * layer_size)+i-1 for i in range(output_shape)]
             self.layer_size = layer_size
-            self.max_node = input_shape + output_shape + num_hidden_layers*layer_size
+            self.max_node = input_shape + output_shape + num_hidden_layers*layer_size - 1
 
-            for i in range(self.max_node):
+            for i in range(self.max_node+1):
                 self.network.add_node(i)
-                self.network.nodes[i].update(value=.5)
+                self.network.nodes[i].update(value=0, bias=0)
+
+            for node in self.input_layer:
+                next_row = np.floor(node / self.layer_size)+1
+                [self.network.add_edge(node, (next_row * self.layer_size) + np.random.randint(0, high=self.layer_size), weight=np.random.uniform(-10, 10)) for x in range(layer_size*2)]
     
     @copy_network
     def _run_network(self, inputs: list, network=None) -> list:
@@ -34,13 +36,12 @@ class Network:
         for i, node in enumerate(self.input_layer):
             network.nodes[node].update(value=inputs[i])
         
-        sigmoid = lambda x : 1/(1 + np.exp(-x))
+        non_linearity = lambda x : x#(-1 if x < 0 else 1) * np.log(np.abs(x)) / 10
         # Evaluates rest of network
-        for node in self.input_layer + [i for i in range(self.hidden_layers[0][0], self.max_node-len(self.output_layer)+i)]:
+        for node in range(self.max_node):
             for edge in network.in_edges(node):
-                network.nodes[edge[1]].update(value=(edge[1] + (network.nodes[node]["value"] * network.edges[edge]["weight"])))
-            network.nodes[node].update(value=sigmoid(network.nodes[node]["value"]+Network.bias))
-
+                network.nodes[node].update(value=(network.nodes[node]["value"] + (network.nodes[edge[0]]["value"] * network.edges[edge]["weight"])))
+            network.nodes[node].update(value=non_linearity(network.nodes[node]["value"]+network.nodes[node]["bias"]))
         return [network.nodes[node]["value"] for node in self.output_layer]
     
     def compare_to_dataset(self, data: list) -> float:
@@ -51,7 +52,9 @@ class Network:
         # Randomly picks 5 nodes and creates/overrides randomly selected edges
         for node in np.random.random_integers(0, high=self.max_node, size=5):
             next_row = np.floor(node / self.layer_size)+1
-            network.add_edge(node, (next_row * self.layer_size) + np.random.randint(0, high=self.layer_size), weight=np.random.uniform(0, 1))
+            next_node = (next_row * self.layer_size) + np.random.randint(0, high=self.layer_size)
+            network.add_edge(node, next_node if next_node < self.max_node else self.max_node, weight=np.random.uniform(-1, 1))
+            network.nodes[node].update(bias=np.random.uniform(-1, 1))
         return Network(duplicates=self, network=network)
     
     def recursive_permutation(self, num: int) -> object:
