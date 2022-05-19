@@ -2,7 +2,7 @@
 A Basic ANN implementation using Python, Numpy, and the NetworkX graph library. Currently it exclusively uses a genetic algorithm to train, but that will change in the future.
 
 # Usage
-It's essentially just a reimplementation of a generic neural network for ML that employs the use of a genetic algorithm (will likely expand training methods in the future).
+It's essentially just a reimplementation of a generic neural network for ML that can employ the use of a Genetic Algorithm and Monte-Carlo Markov Chains (MCMC), though more methods may be available in the future.
 The program has some options for configury, but for the most part they are coded directly in so, in order to use them, you need to go and change some variable in the script itself.
 
 <b>Configuration:</b>
