@@ -1,4 +1,5 @@
 import numpy as np
+import random
 import networkx as nx
 from copy_network import copy_network
 
@@ -36,7 +37,7 @@ class Network:
         for i, node in enumerate(self.input_layer):
             network.nodes[node].update(value=inputs[i])
         
-        non_linearity = lambda x : x#(-1 if x < 0 else 1) * np.log(np.abs(x)) / 10
+        non_linearity = lambda z : 1/(1 + np.exp(-z))#(-1 if x < 0 else 1) * np.log(np.abs(x)) / 10
         # Evaluates rest of network
         for node in range(self.max_node):
             for edge in network.in_edges(node):
@@ -48,16 +49,27 @@ class Network:
         return np.sum([np.sum( [np.abs(n - d[1][i]) for i, n in enumerate(self._run_network(d[0]))] ) for d in data])
     
     @copy_network
-    def generate_permuation(self, network=None) -> object:
-        # Randomly picks 5 nodes and creates/overrides randomly selected edges
-        for node in np.random.random_integers(0, high=self.max_node, size=5):
+    def generate_permutation(self, network=None) -> object:
+        # Randomly picks 1 node and creates/overrides randomly selected edges
+        for node in np.random.random_integers(0, high=self.max_node, size=1):
             next_row = np.floor(node / self.layer_size)+1
             next_node = (next_row * self.layer_size) + np.random.randint(0, high=self.layer_size)
             network.add_edge(node, next_node if next_node < self.max_node else self.max_node, weight=np.random.uniform(-1, 1))
             network.nodes[node].update(bias=np.random.uniform(-1, 1))
         return Network(duplicates=self, network=network)
     
-    def recursive_permutation(self, num: int) -> object:
-        if num == 0:
-            return self.generate_permuation()
-        return self.generate_permuation().recursive_permutation(num-1)
+    @copy_network
+    def micro_permutation(self, macro_chance=.1, network=None) -> object:
+        if np.random.uniform(0, 1) < macro_chance:
+            return self.generate_permutation()
+        # Adjusting random edge
+        edge = random.choice(list(network.edges))
+        network.edges[edge].update(weight=network.edges[edge]['weight']+(np.random.uniform(-1, 1)/10))
+        return Network(duplicates=self, network=network)
+    
+    def recursive_permutation(self, num: int, macro=True) -> object:
+        if num == 0 and macro:
+            return self.generate_permutation()
+        elif num == 0 and not macro:
+            return self.micro_permutation()
+        return self.generate_permutation().recursive_permutation(num-1, macro=macro) if macro else self.micro_permutation().recursive_permutation(num-1, macro=macro)

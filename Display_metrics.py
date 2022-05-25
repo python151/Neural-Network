@@ -26,7 +26,7 @@ print(network.output_layer)
 print(network.max_node)
 print(data[0][0], network._run_network(data[0][0]))
 print(data[23][0], network._run_network(data[23][0]))
-print(data[65][0], network._run_network(data[65][0]))
+print(data[99][0], network._run_network(data[65][0]))
 
 def plot_data():
     x = [d[0] for d in data]

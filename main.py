@@ -7,7 +7,7 @@ from alive_progress import alive_it
 # Loading in Dataset
 
 # FAKE DATA HERE
-data =  [([i, i*2], [i*2, i*4]) for i in range(100)]/np.linalg.norm([([i, i*2], [i*2, i*4]) for i in range(100)])
+data =  [([i, 0], [i*2, i*4]) for i in range(100)]/np.linalg.norm([([i, 0], [i*2, i*4]) for i in range(100)])
 training_data = data 
 
 '''
@@ -41,21 +41,28 @@ def genetic_algo(training_data, first_generation_size=1000, generation_size=250,
             print(f"Accuracy: {generation[0].compare_to_dataset(data)}")
     return generation[0]
 
-def MCMC(training_data, model=None, r=.025, num_permutations_per_step=2, iterations=100) -> object:
+def MCMC(training_data, model=None, kept=None, r=.025, num_permutations_per_step=1, iterations=100) -> object:
     '''
     This is a Monte-Carlo Markov Chain model training algorithm that uses statistical tendencies to it's advantage.
     '''
-    if model is None:
-        model = Network()
+    if model is None or kept is None:
+        model = Network().recursive_permutation(15)
+        kept = model
     if iterations == 0:
-        return model
-    possible_permute = model.recursive_permutation(num_permutations_per_step)
+        return kept
+    
+    # Stores best model
+    kept = model if model.compare_to_dataset(training_data) < kept.compare_to_dataset(training_data) else kept
+
+    # Permutes and executes runtime-loop
+    possible_permute = model.recursive_permutation(num_permutations_per_step, macro=False)
     print(f"Accuracy #1: {model.compare_to_dataset(training_data)} \nAccuracy #2: {possible_permute.compare_to_dataset(training_data)}")
-    return MCMC(training_data, model=possible_permute if model.compare_to_dataset(training_data) > possible_permute.compare_to_dataset(training_data) or np.random.uniform(0, 1) < r else model, r=r, iterations=iterations-1, num_permutations_per_step=2)
+    return MCMC(training_data, model=possible_permute if model.compare_to_dataset(training_data) > possible_permute.compare_to_dataset(training_data) or np.random.uniform(0, 1) < r else model, kept=kept, r=r, iterations=iterations-1, num_permutations_per_step=num_permutations_per_step)
     
 
 if __name__ == '__main__':
-    best = MCMC(training_data)
+    stage1 = MCMC(training_data, iterations=100, r=.01, num_permutations_per_step=5)
+    stage2 = MCMC(training_data, model=stage1, iterations=250, num_permutations_per_step=1, r=.2)
     # Saving network
     filehandler = open("top_network.obj", 'wb') 
     pickle.dump(best, filehandler)
